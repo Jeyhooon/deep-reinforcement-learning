@@ -35,3 +35,5 @@ config = {
 }
 ```
 In case not want to train the agent but to watch the smart agent, run `main.py` with `--is_training False` argument.
+
+Please refer to `Report.ipynb` for learning more about the implementation details.
