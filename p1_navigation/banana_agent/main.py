@@ -13,17 +13,18 @@ os.chdir(pathlib.Path(__file__).parent.absolute())
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 config = {
-    "BUFFER_SIZE": int(1e5),  # replay buffer size
-    "BATCH_SIZE": 64,         # minibatch size
-    "GAMMA": 0.99,            # discount factor
-    "TAU": 1e-3,              # for soft update of target parameters
-    "LR": 5e-4,               # learning rate
-    "UPDATE_EVERY": 4,        # how often to update the network
-    "SEED": 0,
-    "N_EPISODS": 2000,
-    "EPS_START": 1.0,
-    "EPS_END": 0.01,
-    "EPS_DECAY": 0.995
+    "BUFFER_SIZE": int(1e5),        # replay buffer size
+    "BATCH_SIZE": 64,               # minibatch size
+    "GAMMA": 0.99,                  # discount factor
+    "TAU": 1e-3,                    # for soft update of target parameters
+    "LR": 5e-4,                     # learning rate
+    "UPDATE_EVERY": 4,              # how often to update the network
+    "SEED": 10,
+    "N_EPISODS": 2000,              # Number of episodes to train
+    "EPS_START": 1.0,               # Epsilon starting value
+    "EPS_END": 0.01,                # Minimum epsilon value
+    "EPS_DECAY": 0.995,             # Epsilon decay rate
+    "Q_NET_Hidden_Dims": (64, 64)   # Size of the hidden layer in Q-Net
 }
 
 
@@ -33,7 +34,7 @@ def train(_env, _agent, _brain_name):
     env_info = _env.reset(train_mode=False)[_brain_name]
     state = env_info.vector_observations[0]
     score = 0  # initialize the score
-    while True:
+    for _ in range(50):
         action = _agent.act(state)  # select an action
         env_info = _env.step(action)[_brain_name]  # send the action to the environment
         next_state = env_info.vector_observations[0]  # get the next state
@@ -80,7 +81,7 @@ def train(_env, _agent, _brain_name):
         if np.mean(scores_window) >= 13:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode - 100,
                                                                                          np.mean(scores_window)))
-            torch.save(_agent.qnetwork_local.state_dict(), 'result/checkpoint.pth')
+            torch.save(_agent.qnetwork_local.state_dict(), 'results/checkpoint.pth')
             break
 
     return scores, _agent
@@ -121,11 +122,11 @@ if __name__ == "__main__":
         plt.plot(np.arange(len(scores)), scores)
         plt.ylabel('Score')
         plt.xlabel('Episode #')
-        plt.savefig('result/learning_curve.png')
+        plt.savefig('results/learning_curve.png')
         plt.show()
 
     # load the weights from file
-    agent.qnetwork_local.load_state_dict(torch.load('result/checkpoint.pth'))
+    agent.qnetwork_local.load_state_dict(torch.load('results/checkpoint.pth'))
 
     # watch an trained agent
     score = 0  # initialize the score

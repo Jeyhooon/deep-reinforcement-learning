@@ -28,8 +28,8 @@ class Agent:
         random.seed(self.seed)
 
         # Q-Network
-        self.qnetwork_local = QNetwork(state_size, action_size, self.seed).to(self.device)
-        self.qnetwork_target = QNetwork(state_size, action_size, self.seed).to(self.device)
+        self.qnetwork_local = QNetwork(state_size, action_size, self.seed, self.config["Q_NET_Hidden_Dims"]).to(self.device)
+        self.qnetwork_target = QNetwork(state_size, action_size, self.seed, self.config["Q_NET_Hidden_Dims"]).to(self.device)
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=self.config["LR"])
 
         # Replay memory
