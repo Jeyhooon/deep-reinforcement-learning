@@ -8,88 +8,6 @@ import random
 from collections import namedtuple, deque
 
 
-class ReplayBuffer:
-    """Fixed-size buffer to store experience tuples."""
-
-    def __init__(self, action_size, buffer_size, batch_size, seed, device):
-        """Initialize a ReplayBuffer object.
-
-        Params
-        ======
-            action_size (int): dimension of each action
-            buffer_size (int): maximum size of buffer
-            batch_size (int): size of each training batch
-            seed (int): random seed
-        """
-        self.action_size = action_size
-        self.memory = deque(maxlen=buffer_size)
-        self.batch_size = batch_size
-        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
-        self.seed = seed
-        self.device = device
-        random.seed(seed)
-
-    def add(self, state, action, reward, next_state, done):
-        """Add a new experience to memory."""
-        e = self.experience(state, action, reward, next_state, done)
-        self.memory.append(e)
-
-    def sample(self):
-        """Randomly sample a batch of experiences from memory."""
-        experiences = random.sample(self.memory, k=self.batch_size)
-
-        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(self.device)
-        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(self.device)
-        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(self.device)
-        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(self.device)
-        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(self.device)
-
-        return (states, actions, rewards, next_states, dones)
-
-    def __len__(self):
-        """Return the current size of internal memory."""
-        return len(self.memory)
-
-
-class QNetwork(nn.Module):
-    """Actor (Policy) Model."""
-
-    def __init__(self, state_size, action_size, seed, hidden_dims=(64, 64)):
-        """Initialize parameters and build model.
-        Params
-        ======
-            state_size (int): Dimension of each state
-            action_size (int): Dimension of each action
-            seed (int): Random seed
-        """
-        super(QNetwork, self).__init__()
-        self.seed = seed
-        torch.manual_seed(seed)
-
-        "*** YOUR CODE HERE ***"
-        self.h_layers = nn.ModuleList()
-        self.norm_layers = nn.ModuleList()
-        last_dim = hidden_dims[0]
-
-        self.input_layer = nn.Linear(state_size, last_dim)
-        self.input_norm_layer = nn.LayerNorm(last_dim)
-
-        for h_dim in hidden_dims[1:]:
-            self.h_layers.append(nn.Linear(last_dim, h_dim))
-            self.norm_layers.append(nn.LayerNorm(h_dim))
-            last_dim = h_dim
-        self.output_layer = nn.Linear(last_dim, action_size)
-
-    def forward(self, state):
-        """Build a network that maps state -> action values."""
-
-        x = F.relu(self.input_norm_layer(self.input_layer(state)))
-        for norm_layer, h_layer in zip(self.norm_layers, self.h_layers):
-            x = F.relu(norm_layer(h_layer(x)))
-
-        return self.output_layer(x)
-
-
 class Agent:
     """Interacts with and learns from the environment."""
 
@@ -198,3 +116,81 @@ class Agent:
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
+
+
+class ReplayBuffer:
+    """Fixed-size buffer to store experience tuples."""
+
+    def __init__(self, action_size, buffer_size, batch_size, seed, device):
+        """Initialize a ReplayBuffer object.
+
+        Params
+        ======
+            action_size (int): dimension of each action
+            buffer_size (int): maximum size of buffer
+            batch_size (int): size of each training batch
+            seed (int): random seed
+        """
+        self.action_size = action_size
+        self.memory = deque(maxlen=buffer_size)
+        self.batch_size = batch_size
+        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
+        self.seed = seed
+        self.device = device
+        random.seed(seed)
+
+    def add(self, state, action, reward, next_state, done):
+        """Add a new experience to memory."""
+        e = self.experience(state, action, reward, next_state, done)
+        self.memory.append(e)
+
+    def sample(self):
+        """Randomly sample a batch of experiences from memory."""
+        experiences = random.sample(self.memory, k=self.batch_size)
+
+        states = torch.from_numpy(np.vstack([e.state for e in experiences if e is not None])).float().to(self.device)
+        actions = torch.from_numpy(np.vstack([e.action for e in experiences if e is not None])).long().to(self.device)
+        rewards = torch.from_numpy(np.vstack([e.reward for e in experiences if e is not None])).float().to(self.device)
+        next_states = torch.from_numpy(np.vstack([e.next_state for e in experiences if e is not None])).float().to(self.device)
+        dones = torch.from_numpy(np.vstack([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(self.device)
+
+        return (states, actions, rewards, next_states, dones)
+
+    def __len__(self):
+        """Return the current size of internal memory."""
+        return len(self.memory)
+
+
+class QNetwork(nn.Module):
+    """Actor (Policy) Model."""
+
+    def __init__(self, state_size, action_size, seed, hidden_dims=(64, 64)):
+        """Initialize parameters and build model.
+        Params
+        ======
+            state_size (int): Dimension of each state
+            action_size (int): Dimension of each action
+            seed (int): Random seed
+        """
+        super(QNetwork, self).__init__()
+        self.seed = torch.manual_seed(seed)
+
+        "*** YOUR CODE HERE ***"
+        self.h_layers = nn.ModuleList()
+        last_dim = hidden_dims[0]
+
+        self.input_layer = nn.Linear(state_size, last_dim)
+
+        for h_dim in hidden_dims[1:]:
+            self.h_layers.append(nn.Linear(last_dim, h_dim))
+            last_dim = h_dim
+        self.output_layer = nn.Linear(last_dim, action_size)
+
+    def forward(self, state):
+        """Build a network that maps state -> action values."""
+
+        x = F.relu(self.input_layer(state))
+        for h_layer in self.h_layers:
+            x = F.relu(h_layer(x))
+
+        return self.output_layer(x)

@@ -1,13 +1,13 @@
 
+import argparse
 import numpy as np
-import random
-from collections import namedtuple, deque
+from collections import deque
 import torch
 from unityagents import UnityEnvironment
-from agent import QNetwork, ReplayBuffer, Agent
-import matplotlib.pyplot as plt
+from scripts.agent import Agent
 import pathlib
 import os
+import matplotlib.pyplot as plt
 
 os.chdir(pathlib.Path(__file__).parent.absolute())
 
@@ -18,7 +18,7 @@ config = {
     "GAMMA": 0.99,            # discount factor
     "TAU": 1e-3,              # for soft update of target parameters
     "LR": 5e-4,               # learning rate
-    "UPDATE_EVERY": 4,         # how often to update the network
+    "UPDATE_EVERY": 4,        # how often to update the network
     "SEED": 0,
     "N_EPISODS": 2000,
     "EPS_START": 1.0,
@@ -80,13 +80,17 @@ def train(_env, _agent, _brain_name):
         if np.mean(scores_window) >= 13:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode - 100,
                                                                                          np.mean(scores_window)))
-            torch.save(_agent.qnetwork_local.state_dict(), 'checkpoint.pth')
+            torch.save(_agent.qnetwork_local.state_dict(), 'result/checkpoint.pth')
             break
 
     return scores, _agent
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--is_training', type=bool, default=True, help='Train otherwise Test/Eval')
+    args = parser.parse_args()
 
     env = UnityEnvironment(file_name="../Banana_Linux/Banana.x86_64", seed=config["SEED"])
     brain_name = env.brain_names[0]
@@ -108,18 +112,20 @@ if __name__ == "__main__":
 
     agent = Agent(state_size=state_size, action_size=action_size, device=device, config=config)
 
-    # scores, agent = train(env, agent, brain_name)
-    #
-    # # plot the scores
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111)
-    # plt.plot(np.arange(len(scores)), scores)
-    # plt.ylabel('Score')
-    # plt.xlabel('Episode #')
-    # plt.show()
+    if args.is_training:
+        scores, agent = train(env, agent, brain_name)
+
+        # plot the scores
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        plt.plot(np.arange(len(scores)), scores)
+        plt.ylabel('Score')
+        plt.xlabel('Episode #')
+        plt.savefig('result/learning_curve.png')
+        plt.show()
 
     # load the weights from file
-    agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
+    agent.qnetwork_local.load_state_dict(torch.load('result/checkpoint.pth'))
 
     # watch an trained agent
     score = 0  # initialize the score
