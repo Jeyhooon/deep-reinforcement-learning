@@ -17,7 +17,8 @@ UPDATE_EVERY = 4        # how often to update the network
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class Agent():
+
+class Agent:
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, seed):
@@ -87,6 +88,25 @@ class Agent():
 
         ## TODO: compute and minimize the loss
         "*** YOUR CODE HERE ***"
+
+        # # DQN-Target
+        next_max_value = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+
+        # # DDQN-Target
+        # with torch.no_grad():
+        #     action_values = self.qnetwork_local(states)
+        #     next_max_acts = torch.argmax(action_values, dim=-1).unsqueeze(1)
+        #     next_max_value = self.qnetwork_target(next_states).gather(1, next_max_acts)
+
+        target_q = rewards + gamma * next_max_value * (1 - dones)
+        expected_q = self.qnetwork_local(states).gather(1, actions)
+
+        # Compute loss
+        loss = F.mse_loss(expected_q, target_q)
+        # Minimize the loss
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
         # ------------------- update target network ------------------- #
         self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)                     
