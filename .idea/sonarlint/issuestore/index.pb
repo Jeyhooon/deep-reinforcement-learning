@@ -9,8 +9,6 @@ E
 dqn/solution/model.py,1/e/1e710d1c223553278eddce9cc64b35d79a1cc708
 I
 dqn/solution/dqn_agent.py,5/8/58b268ae8f3ff30ba199d91efe929d409329c73a
-9
-	README.md,8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
 V
 &p1_navigation/banana_agent/__init__.py,5/1/51977c50c3463376cacd6756742fe140bcb06242
 A
@@ -93,3 +91,33 @@ W
 'p1_navigation/banana_agent/Report.ipynb,8/8/888a1b6ca7c06884009d922c593730a0c064940d
 [
 +p1_navigation/banana_agent/scripts/agent.py,c/5/c5b9286963500776ec48b8cc3870a22e08338703
+G
+cross-entropy/CEM.ipynb,3/7/37063a71963acf6d49a97088874ebd4374879b57
+G
+cross-entropy/README.md,7/6/766f389c426c54dcde4c86c487a6e32658d3ecd6
+G
+hill-climbing/README.md,a/2/a21d56b86409016bcb178ac922d5ac70f694445c
+@
+finance/utils.py,b/5/b5697ba6b28630fe8809eed6881a0e98a88f4eb8
+I
+reinforce/REINFORCE.ipynb,c/e/ce43591eec06f31731bbc6931f3cf6d48ea5af71
+C
+reinforce/README.md,1/f/1f324082150c23e9a262b357b91134863fd120a1
+A
+finance/DRL.ipynb,d/7/d734dab68c60877b0e71885a39aa8ef1e8b649e5
+V
+&finance/Almgren and Chriss Model.ipynb,7/e/7ede98d28081de7d2a12c6e196170855fb1fa238
+P
+ finance/Efficient Frontier.ipynb,4/6/46c8690f93be849cae766641df017fb928cf1d67
+Q
+!hill-climbing/Hill_Climbing.ipynb,f/6/f6a6ec3577e2b286678cc1dd0371aa845d95184c
+K
+finance/Trading Lists.ipynb,1/c/1c06a0214a5662553aedf9ac42fd7048d9e8db32
+R
+"pong_with_reinforce/parallelEnv.py,3/e/3ed1c5c3f348a113bb472734560a69f03d12c80c
+R
+"pong_with_reinforce/pong-PPO.ipynb,4/d/4d88ca5714a5aa4c87e5d2957390a9eeb3f8a288
+Q
+!pong_with_reinforce/pong_utils.py,f/d/fddd6e164d276e297c3d896dc40d6e2003f1a955
+9
+	README.md,8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
