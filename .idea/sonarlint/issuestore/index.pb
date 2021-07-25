@@ -111,9 +111,7 @@ Q
 !hill-climbing/Hill_Climbing.ipynb,f/6/f6a6ec3577e2b286678cc1dd0371aa845d95184c
 K
 finance/Trading Lists.ipynb,1/c/1c06a0214a5662553aedf9ac42fd7048d9e8db32
-R
-"pong_with_reinforce/parallelEnv.py,3/e/3ed1c5c3f348a113bb472734560a69f03d12c80c
+9
+	README.md,8/e/8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d
 R
 "pong_with_reinforce/pong-PPO.ipynb,4/d/4d88ca5714a5aa4c87e5d2957390a9eeb3f8a288
-Q
-!pong_with_reinforce/pong_utils.py,f/d/fddd6e164d276e297c3d896dc40d6e2003f1a955

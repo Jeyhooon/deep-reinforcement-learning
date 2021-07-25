@@ -8,6 +8,8 @@ import numpy as np
 import gym
 from multiprocessing import Process, Pipe
 from abc import ABC, abstractmethod
+from stable_baselines.common.vec_env import VecEnvWrapper
+
 
 class CloudpickleWrapper(object):
     """
@@ -24,6 +26,7 @@ class CloudpickleWrapper(object):
     def __setstate__(self, ob):
         import pickle
         self.x = pickle.loads(ob)
+
 
 class VecEnv(ABC):
     """
@@ -86,9 +89,9 @@ class VecEnv(ABC):
         return self.step_wait()
 
     def render(self, mode='human'):
-        #logger.warn('Render not defined for %s' % self)
+        # logger.warn('Render not defined for %s' % self)
         pass
-        
+
     @property
     def unwrapped(self):
         if isinstance(self, VecEnvWrapper):
@@ -127,12 +130,12 @@ class parallelEnv(VecEnv):
                  n=4, seed=None,
                  spaces=None):
 
-        env_fns = [ gym.make(env_name) for _ in range(n) ]
+        env_fns = [gym.make(env_name) for _ in range(n)]
 
         if seed is not None:
-            for i,e in enumerate(env_fns):
-                e.seed(i+seed)
-        
+            for i, e in enumerate(env_fns):
+                e.seed(i + seed)
+
         """
         envs: list of gym environments to run in subprocesses
         adopted from openai baseline
@@ -142,9 +145,9 @@ class parallelEnv(VecEnv):
         nenvs = len(env_fns)
         self.remotes, self.work_remotes = zip(*[Pipe() for _ in range(nenvs)])
         self.ps = [Process(target=worker, args=(work_remote, remote, CloudpickleWrapper(env_fn)))
-            for (work_remote, remote, env_fn) in zip(self.work_remotes, self.remotes, env_fns)]
+                   for (work_remote, remote, env_fn) in zip(self.work_remotes, self.remotes, env_fns)]
         for p in self.ps:
-            p.daemon = True # if the main process crashes, we should not cause things to hang
+            p.daemon = True  # if the main process crashes, we should not cause things to hang
             p.start()
         for remote in self.work_remotes:
             remote.close()
@@ -178,7 +181,7 @@ class parallelEnv(VecEnv):
         if self.closed:
             return
         if self.waiting:
-            for remote in self.remotes:            
+            for remote in self.remotes:
                 remote.recv()
         for remote in self.remotes:
             remote.send(('close', None))

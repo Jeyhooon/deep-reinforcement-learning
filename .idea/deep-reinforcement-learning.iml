@@ -6,7 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/drlnd" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.6 (deep-reinforcement-learning)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Remote Python 3.6.9 (sftp://jeyhoon@134.2.56.219:22/home/jeyhoon/git/deep-reinforcement-learning/drlnd/bin/python3.6)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">
