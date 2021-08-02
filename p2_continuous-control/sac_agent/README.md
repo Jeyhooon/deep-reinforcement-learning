@@ -12,7 +12,7 @@ A reward of +0.1 is provided for each step that the agent's hand is in the goal 
 The observation space consists of 33 variables corresponding to position, rotation, velocity, and angular velocities of the arm. \
 Each action is a vector with four numbers, corresponding to torque applicable to two joints. Every entry in the action vector should be a number between -1 and 1.
 
-For this project, the Unity environment with single agent is used and trained using data efficient off-policy policy gradient algorithm; [soft-actor-critic (SAC)](https://arxiv.org/abs/1801.01290). \
+For this project, the Unity environment with single agent is used and trained using data efficient off-policy policy gradient algorithm; [soft-actor-critic (SAC)](https://arxiv.org/abs/1801.01290). 
 SAC tries to maximize expected reward while also maximizing entropy. That is, to succeed at the task while acting as randomly as possible.
 
 The task is episodic, and in order to solve the environment, the agent must get an average score of +30 over 100 consecutive episodes.
@@ -21,7 +21,7 @@ The task is episodic, and in order to solve the environment, the agent must get 
 Clone this repository and install the requirements in a [virtual-env](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) using `pip install requirements.txt`
 
 ### Instructions
-Run `main.py` to train the agent; hyperparameters can be changed inside the `main.py` script:
+Run `main.py` to train the agent; hyperparameters can be changed inside the `main.py` script (code is adapted from: [mimoralea/gdrl](https://github.com/mimoralea/gdrl)):
 ```Python
 config = {
     "ROOT_DIR": "results",                  # directory to save the results
