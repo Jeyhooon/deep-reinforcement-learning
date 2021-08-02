@@ -81,16 +81,6 @@ I
 +p1_navigation/banana_agent/requirements.txt,d/9/d9f15ba67eb04815420a3a328d7c653224c986ac
 N
 p1_navigation/Navigation.ipynb,4/7/478c20556ba9bbb745e4832c7eff8e73ab291dd5
-T
-$p1_navigation/banana_agent/README.md,d/2/d2468c7efae8fc39ff1a9a0421cb6665ccffaac7
-G
-p1_navigation/README.md,e/a/ea5b3032c221671806c8a9d35c085f142deb2984
-R
-"p1_navigation/banana_agent/main.py,8/0/8076b2bf723c2754f5c4717101db5076a67315e2
-W
-'p1_navigation/banana_agent/Report.ipynb,8/8/888a1b6ca7c06884009d922c593730a0c064940d
-[
-+p1_navigation/banana_agent/scripts/agent.py,c/5/c5b9286963500776ec48b8cc3870a22e08338703
 G
 cross-entropy/CEM.ipynb,3/7/37063a71963acf6d49a97088874ebd4374879b57
 G
