@@ -77,8 +77,6 @@ I
 dqn/exercise/dqn_agent.py,f/8/f8b021496f1feea06c6b1aa0962845333b14a040
 ^
 .p1_navigation/banana_agent/scripts/__init__.py,d/e/deca75164e397523998d4831b1da1143c89ec15f
-[
-+p1_navigation/banana_agent/requirements.txt,d/9/d9f15ba67eb04815420a3a328d7c653224c986ac
 N
 p1_navigation/Navigation.ipynb,4/7/478c20556ba9bbb745e4832c7eff8e73ab291dd5
 G
