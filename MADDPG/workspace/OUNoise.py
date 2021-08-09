@@ -1,9 +1,18 @@
+
 import numpy as np
 import torch
 
 
 # from https://github.com/songrotek/DDPG/blob/master/ou_noise.py
 class OUNoise:
+    """
+    This strategy implements the Ornstein-Uhlenbeck process, which adds
+    time-correlated noise to the actions taken by the deterministic policy.
+    The OU process satisfies the following stochastic differential equation:
+    dxt = theta*(mu - xt)*dt + sigma*dWt
+    where Wt denotes the Wiener process
+
+    """
 
     def __init__(self, action_dimension, scale=0.1, mu=0, theta=0.15, sigma=0.2):
         self.action_dimension = action_dimension

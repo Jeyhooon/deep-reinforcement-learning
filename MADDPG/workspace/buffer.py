@@ -8,7 +8,7 @@ class ReplayBuffer:
         self.size = size
         self.deque = deque(maxlen=self.size)
 
-    def push(self,transition):
+    def push(self, transition):
         """push into the buffer"""
         
         input_to_buffer = transpose_list(transition)

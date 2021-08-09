@@ -3,13 +3,14 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/p1_navigation/banana_agent" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/p2_continuous-control/sac_agent" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/p2_continuous_control/sac_agent" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/p3_collab_compet/workspace" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/drlnd" />
-      <excludeFolder url="file://$MODULE_DIR$/p2_continuous-control/data" />
-      <excludeFolder url="file://$MODULE_DIR$/p2_continuous-control/python" />
+      <excludeFolder url="file://$MODULE_DIR$/p2_continuous_control/python" />
+      <excludeFolder url="file://$MODULE_DIR$/p2_continuous_control/data" />
     </content>
-    <orderEntry type="jdk" jdkName="Remote Python 3.6.9 (sftp://jeyhoon@134.2.56.219:22/home/jeyhoon/git/deep-reinforcement-learning/drlnd/bin/python3.6)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6 (deep-reinforcement-learning)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">
