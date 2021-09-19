@@ -1,24 +1,8 @@
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.distributions import Normal
-
-import numpy as np
-from itertools import count
-from collections import deque
-import matplotlib.pyplot as plt
-import matplotlib.pylab as pylab
-
-import glob
-import gc
 import os
 import os.path
-import time
-import tempfile
-import random
-from IPython.display import display, HTML
+import wandb
+
 from unityagents import UnityEnvironment
 from scripts.utils import *
 
@@ -56,7 +40,7 @@ print('There are {} agents. Each observes a state with length: {}'.format(states
 print('The state for the first agent looks like:', states[0])
 print('The state for the second agent looks like:', states[1])
 
-for i in range(1):                                         # play game for 5 episodes
+for i in range(1):                                         # play game for some episodes
     env_info = env.reset(train_mode=False)[brain_name]     # reset the environment
     states = env_info.vector_observations                  # get the current state (for each agent)
     scores = np.zeros(num_agents)                          # initialize the score (for each agent)
@@ -80,19 +64,19 @@ def main():
     seeding()
     # number of training episodes.
     # change this to higher number to experiment. say 30000.
-    number_of_episodes = 4000
-    batchsize = 1000
+    number_of_episodes = 10000
+    batchsize = 2000
     # how many episodes to save policy and gif
-    save_interval = 200
+    save_interval = 1000
     t = 0
 
     # amplitude of OU noise
     # this slowly decreases to 0
     noise = 2
-    noise_reduction = 0.9999
+    noise_reduction = 0.99999
 
     # how many episodes before update
-    episode_per_update = 2
+    episode_per_update = 5
 
     log_path = os.getcwd() + "/log"
     model_dir = os.getcwd() + "/model_dir"
@@ -102,7 +86,9 @@ def main():
     buffer = ReplayBuffer(int(1e6))
 
     # initialize policy and critic
-    maddpg = MADDPG()
+    maddpg = SelfPlayDDPG()
+    wandb.watch(maddpg, log="all")
+
     logger = SummaryWriter(log_dir=log_path)
     agent0_reward = []
     agent1_reward = []
@@ -128,9 +114,9 @@ def main():
 
         # save info or not
         save_info = (episode % save_interval == 0 or episode == number_of_episodes)
-        frames = []
-        tmax = 0
 
+        # frames = []
+        # tmax = 0
         #         if save_info:
         #             frames.append(env.render('rgb_array'))
 
@@ -139,10 +125,10 @@ def main():
 
             # explore = only explore for a certain number of episodes
             # action input needs to be transposed
-            actions = maddpg.act(torch.tensor(np.concatenate(states), dtype=dtype, device=device), noise=noise)
+            actions = maddpg.act(torch.tensor(states[None, ...], dtype=dtype, device=device), noise=noise)
             noise *= noise_reduction
 
-            actions_for_env = torch.stack(actions, dim=0).detach().numpy()  # [num_agents, acts_size]
+            actions_for_env = torch.cat(actions, dim=0).detach().numpy()  # [num_agents, acts_size]
 
             # step forward one frame
             env_info = env.step(actions_for_env)[brain_name]
@@ -171,30 +157,34 @@ def main():
 
         # update once after every episode_per_update
         if len(buffer) > batchsize and episode % episode_per_update == 0:
-            for a_i in range(num_agents):
-                samples = buffer.sample(batchsize)
-                maddpg.update(samples, a_i, logger)
+            samples = buffer.sample(batchsize)
+            maddpg.update(samples, logger)
             maddpg.update_targets()  # soft update the target network towards the actual networks
 
         if episode % 100 == 0 or episode == number_of_episodes - 1:
             avg_rewards = [np.mean(agent0_reward), np.mean(agent1_reward)]
             agent0_reward = []
             agent1_reward = []
+            agent_mean_rew_dict = {}
             for a_i, avg_rew in enumerate(avg_rewards):
                 logger.add_scalar('agent%i/mean_episode_rewards' % a_i, avg_rew, episode)
                 print(f'agent{a_i}/mean_episode({episode})_rewards: {avg_rew}')
+                agent_mean_rew_dict.update({f'agent_{a_i + 1}_mean_reward': avg_rew, 'episode': episode})
+            wandb.log(agent_mean_rew_dict)
 
         # saving model
         save_dict_list = []
         if save_info:
-            for i in range(num_agents):
-                save_dict = {'actor_params': maddpg.maddpg_agent[i].actor.state_dict(),
-                             'actor_optim_params': maddpg.maddpg_agent[i].actor_optimizer.state_dict(),
-                             'critic_params': maddpg.maddpg_agent[i].critic.state_dict(),
-                             'critic_optim_params': maddpg.maddpg_agent[i].critic_optimizer.state_dict()}
-                save_dict_list.append(save_dict)
+            save_dict = {'actor_params': maddpg.ddpg_agent.actor.state_dict(),
+                         'actor_optim_params': maddpg.ddpg_agent.actor_optimizer.state_dict(),
+                         'critic1_params': maddpg.ddpg_agent.critic_1.state_dict(),
+                         'critic1_optim_params': maddpg.ddpg_agent.critic_1_optimizer.state_dict(),
+                         'critic2_params': maddpg.ddpg_agent.critic_2.state_dict(),
+                         'critic2_optim_params': maddpg.ddpg_agent.critic_2_optimizer.state_dict()
+                         }
+            save_dict_list.append(save_dict)
 
-                torch.save(save_dict_list, os.path.join(model_dir, 'episode-{}.pt'.format(episode)))
+            torch.save(save_dict_list, os.path.join(model_dir, 'episode-{}.pt'.format(episode)))
 
     #             # save gif files
     #             imageio.mimsave(os.path.join(model_dir, 'episode-{}.gif'.format(episode)),
@@ -204,6 +194,14 @@ def main():
     logger.close()
     timer.finish()
 
+
 if __name__ == '__main__':
     device = 'cpu'
+
+    wandb_id = wandb.util.generate_id()
+    date_time_now = get_date_time_now()
+    wandb.init(project="MADDPG_Tennis", id=wandb_id)
+    wandb.run.name = date_time_now + "__" + wandb_id
+    wandb.run.save()
+
     main()
