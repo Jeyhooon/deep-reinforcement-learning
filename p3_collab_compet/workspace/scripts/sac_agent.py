@@ -45,6 +45,8 @@ class MASAC(torch.nn.Module):
         self.root_dir = config["ROOT_DIR"]
         self.num_agents = config["NUM_AGENTS"]
 
+        self.config = config
+
     def optimize_model(self, experiences):
         states, actions, rewards, next_states, is_terminals = experiences
         batch_size = states.shape[0]
@@ -65,7 +67,8 @@ class MASAC(torch.nn.Module):
         self.policy_model.alpha_optimizer.zero_grad()
         alpha_loss.backward()
         self.policy_model.alpha_optimizer.step()
-        alpha = self.policy_model.logalpha.exp()
+        # alpha = self.policy_model.logalpha.exp()
+        alpha = self.config["ALPHA"]
 
         # Q loss
         ap_list = []
@@ -142,6 +145,7 @@ class MASAC(torch.nn.Module):
 
         log_dict = {"critic_1_a_loss": q1_a_loss.item(), "critic_1_b_loss": q1_b_loss.item(),
                     "critic_2_a_loss": q2_a_loss.item(), "critic_2_b_loss": q2_b_loss.item(),
+                    "logpi_s_1": logpi_s_list[0], "logpi_s_2": logpi_s_list[1], "logpi_sp_1": logpi_sp_list[0], "logpi_sp_2": logpi_sp_list[1],
                     "policy_loss": policy_loss.item(), "alpha_loss": alpha_loss.item(), "alpha": alpha,
                     "agent1_acts_dim1": current_actions_list[0][:, 0], "agent1_acts_dim2": current_actions_list[0][:, 1],
                     "agent2_acts_dim1": current_actions_list[1][:, 0], "agent2_acts_dim2": current_actions_list[1][:, 1]}

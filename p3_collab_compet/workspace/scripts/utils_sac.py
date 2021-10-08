@@ -170,8 +170,9 @@ class GaussianPolicyNet(nn.Module):
         tanh_action = torch.tanh(pre_tanh_action)
         action = self.rescale_fn(tanh_action)
 
-        log_prob = pi_s.log_prob(pre_tanh_action) - \
-                   torch.log((1 - tanh_action.pow(2)).clamp(0, 1) + epsilon)
+        #log_prob = pi_s.log_prob(pre_tanh_action) - \
+        #           torch.log((1 - tanh_action.pow(2)).clamp(0, 1) + epsilon)
+        log_prob = pi_s.log_prob(pre_tanh_action)
         log_prob = log_prob.sum(dim=1, keepdim=True)
 
         return action, log_prob, self.rescale_fn(torch.tanh(mean))

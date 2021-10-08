@@ -21,23 +21,25 @@ config = {
     "NUM_AGENTS": 2,
     "ROOT_DIR": "results",                  # directory to save the results
     "BUFFER_SIZE": int(1e6),                # replay buffer size
-    "BATCH_SIZE": 512,                      # mini-batch size
+    "BATCH_SIZE": 256,                      # mini-batch size
     "WARMUP_BATCHES": 10,                   # number of initial batches to fill the buffer with
     "TAU": 5e-3,                            # for soft update of target parameters
-    "UPDATE_EVERY": 2,                      # how often to update the network
-    "SEED": [1],                            # list of the seed to do randomize each training
-    "Q_NET_Hidden_Dims": (24, 24),          # Size of the hidden layer in Q-Net
-    "Q_LR": 7e-2,                           # Q-Net learning rate
+    "ALPHA": 0.1,
+    "UPDATE_EVERY": 4,                      # how often to update the network
+    "SEED": [64],                            # list of the seed to do randomize each training
+    "Q_NET_Hidden_Dims": (1024, 1024),          # Size of the hidden layer in Q-Net
+    "Q_LR": 3e-4,                           # Q-Net learning rate
     "Q_MAX_GRAD_NORM": float('inf'),        # to clip gradients of Q-Net
-    "POLICY_NET_Hidden_Dims": (12, 12),     # Size of the hidden layer in Policy-Net
-    "POLICY_LR": 5e-2,                      # Policy-Net learning rate
-    "POLICY_MAX_GRAD_NORM": float('inf'),   # to clip gradients of the Policy-Net
+    "POLICY_NET_Hidden_Dims": (1024, 1024),     # Size of the hidden layer in Policy-Net
+    "POLICY_LR": 3e-4,                      # Policy-Net learning rate
+    "POLICY_MAX_GRAD_NORM": float(10.0),   # to clip gradients of the Policy-Net
+    "WEIGHT_DECAY": float(3e-5),
 
     "ENV_SETTINGS": {
             'ENV_NAME': 'data/Tennis_Linux_NoVis/Tennis',
             'GAMMA': 0.99,
             'MAX_MINUTES': 300,
-            'MAX_EPISODES': int(1e5),
+            'MAX_EPISODES': int(15e3),
             'GOAL_MEAN_100_REWARD': 0.5
         }
 }
@@ -46,10 +48,10 @@ config = {
 def create_agent(config):
 
     policy_model_fn = lambda nS, bounds: utils.GaussianPolicyNet(nS, bounds, hidden_dims=config["POLICY_NET_Hidden_Dims"])
-    policy_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr)
+    policy_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr, weight_decay=config["WEIGHT_DECAY"])
 
     value_model_fn = lambda nS, nA: utils.QNet(nS, nA, hidden_dims=config["Q_NET_Hidden_Dims"])
-    value_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr)
+    value_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr, weight_decay=config["WEIGHT_DECAY"])
 
     replay_buffer_fn = lambda: utils.ReplayBuffer(buffer_size=config["BUFFER_SIZE"], batch_size=config["BATCH_SIZE"])
 
@@ -238,8 +240,11 @@ if __name__ == "__main__":
     # watch an untrained agent
     env_info = env.reset(train_mode=False)[brain_name]
     states = env_info.vector_observations
+
+    # initialize the scores
     agent_1_score = 0
-    agent_2_score = 0 # initialize the score
+    agent_2_score = 0
+
     for _ in range(50):
         actions = np.concatenate([agent.policy_model.select_action(states[i]) for i in range(num_agents)])  # select an action
         env_info = env.step(actions)[brain_name]  # send the action to the environment
