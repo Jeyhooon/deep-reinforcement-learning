@@ -7,7 +7,7 @@ import pathlib
 import os
 import matplotlib.pyplot as plt
 from datetime import date
-import wandb
+# import wandb
 
 from unityagents import UnityEnvironment
 from scripts.sac_agent import MASAC
@@ -36,7 +36,7 @@ config = {
     "WEIGHT_DECAY": float(3e-5),
 
     "ENV_SETTINGS": {
-            'ENV_NAME': 'data/Tennis_Linux_NoVis/Tennis',
+            'ENV_NAME': 'data/Tennis_Linux/Tennis.x86_64',
             'GAMMA': 0.99,
             'MAX_MINUTES': 300,
             'MAX_EPISODES': int(15e3),
@@ -204,11 +204,11 @@ if __name__ == "__main__":
     parser.add_argument('--load_dir', type=str, default=None, help='Directory to load the model from')
     args = parser.parse_args()
 
-    wandb_id = wandb.util.generate_id()
+    # wandb_id = wandb.util.generate_id()
     date_time_now = utils.get_date_time_now()
-    wandb.init(project="MASAC_Tennis", id=wandb_id, config=config)
-    wandb.run.name = date_time_now + "__" + wandb_id
-    wandb.run.save()
+    # wandb.init(project="MASAC_Tennis", id=wandb_id, config=config)
+    # wandb.run.name = date_time_now + "__" + wandb_id
+    # wandb.run.save()
 
     env_name, gamma, max_minutes, max_episodes, goal_mean_100_reward = config["ENV_SETTINGS"].values()
     env = UnityEnvironment(file_name=env_name, seed=config["SEED"][0])
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     agent = create_agent(config)
     action_bounds = [-1 for _ in range(action_size)], [1 for _ in range(action_size)]
     agent.setup(state_size, action_size, action_bounds)
-    wandb.watch(agent, log='all')
+    # wandb.watch(agent, log='all')
 
     # watch an untrained agent
     env_info = env.reset(train_mode=False)[brain_name]

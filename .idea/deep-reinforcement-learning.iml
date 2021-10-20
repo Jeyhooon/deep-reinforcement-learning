@@ -6,9 +6,9 @@
       <sourceFolder url="file://$MODULE_DIR$/p2_continuous_control/sac_agent" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/p3_collab_compet/workspace" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
-      <excludeFolder url="file://$MODULE_DIR$/drlnd" />
       <excludeFolder url="file://$MODULE_DIR$/p2_continuous_control/python" />
       <excludeFolder url="file://$MODULE_DIR$/p2_continuous_control/data" />
+      <excludeFolder url="file://$MODULE_DIR$/venv" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.6 (deep-reinforcement-learning)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -10,7 +10,7 @@ import time
 import tempfile
 import random
 
-import wandb
+# import wandb
 
 LEAVE_PRINT_EVERY_N_SECS = 300
 ERASE_LINE = '\x1b[2K'
@@ -149,7 +149,7 @@ class MASAC(torch.nn.Module):
                     "policy_loss": policy_loss.item(), "alpha_loss": alpha_loss.item(), "alpha": alpha,
                     "agent1_acts_dim1": current_actions_list[0][:, 0], "agent1_acts_dim2": current_actions_list[0][:, 1],
                     "agent2_acts_dim1": current_actions_list[1][:, 0], "agent2_acts_dim2": current_actions_list[1][:, 1]}
-        wandb.log(log_dict)
+        # wandb.log(log_dict)
 
     def interaction_step(self, states, env):
         min_samples = self.replay_buffer.batch_size * self.n_warmup_batches
@@ -302,7 +302,7 @@ class MASAC(torch.nn.Module):
                         "eval_max_reward_mean_100": np.mean(self.episode_eval_max_reward[-100:]),
                         "eval_max_reward_std_100": np.std(self.episode_eval_max_reward[-100:]),
                         "eval_episode": episode}
-            wandb.log(log_dict)
+            # wandb.log(log_dict)
 
             mean_10_reward = [np.mean(self.episode_rewards[i][-10:]) for i in range(self.num_agents)]
             std_10_reward = [np.std(self.episode_rewards[i][-10:]) for i in range(self.num_agents)]
