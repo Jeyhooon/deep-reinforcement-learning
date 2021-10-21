@@ -32,7 +32,7 @@ config = {
     "POLICY_MAX_GRAD_NORM": float('inf'),   # to clip gradients of the Policy-Net
 
     "ENV_SETTINGS": {
-            'ENV_NAME': '../data/Reacher_One_Linux_NoVis/Reacher_One_Linux_NoVis.x86_64',
+            'ENV_NAME': 'Reacher_Linux/Reacher.x86_64',
             'GAMMA': 0.99,
             'MAX_MINUTES': 300,
             'MAX_EPISODES': 10000,

@@ -7,39 +7,37 @@ import pathlib
 import os
 import matplotlib.pyplot as plt
 from datetime import date
-# import wandb
+import mlflow
 
 from unityagents import UnityEnvironment
-from scripts.sac_agent import MASAC
-from scripts import utils_sac as utils
+from agent import SACAgent
+import utils
 
 os.chdir(pathlib.Path(__file__).parent.absolute())
 RESULTS_DIR = os.path.join('results')
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+np.set_printoptions(precision=4)
 
 config = {
-    "NUM_AGENTS": 2,
     "ROOT_DIR": "results",                  # directory to save the results
     "BUFFER_SIZE": int(1e6),                # replay buffer size
     "BATCH_SIZE": 256,                      # mini-batch size
     "WARMUP_BATCHES": 10,                   # number of initial batches to fill the buffer with
     "TAU": 5e-3,                            # for soft update of target parameters
-    "ALPHA": 0.1,
-    "UPDATE_EVERY": 4,                      # how often to update the network
-    "SEED": [64],                            # list of the seed to do randomize each training
-    "Q_NET_Hidden_Dims": (1024, 1024),          # Size of the hidden layer in Q-Net
-    "Q_LR": 3e-4,                           # Q-Net learning rate
+    "UPDATE_EVERY": 1,                      # how often to update the network
+    "SEED": [1],                            # list of the seed to do randomize each training
+    "Q_NET_Hidden_Dims": (128, 128),        # Size of the hidden layer in Q-Net
+    "Q_LR": 7e-4,                           # Q-Net learning rate
     "Q_MAX_GRAD_NORM": float('inf'),        # to clip gradients of Q-Net
-    "POLICY_NET_Hidden_Dims": (1024, 1024),     # Size of the hidden layer in Policy-Net
-    "POLICY_LR": 3e-4,                      # Policy-Net learning rate
-    "POLICY_MAX_GRAD_NORM": float(10.0),   # to clip gradients of the Policy-Net
-    "WEIGHT_DECAY": float(3e-5),
+    "POLICY_NET_Hidden_Dims": (64, 64),     # Size of the hidden layer in Policy-Net
+    "POLICY_LR": 5e-4,                      # Policy-Net learning rate
+    "POLICY_MAX_GRAD_NORM": float('inf'),   # to clip gradients of the Policy-Net
 
     "ENV_SETTINGS": {
-            'ENV_NAME': 'data/Tennis_Linux/Tennis.x86_64',
+            'ENV_NAME': '../data/Tennis_Linux/Tennis.x86_64',
             'GAMMA': 0.99,
-            'MAX_MINUTES': 300,
-            'MAX_EPISODES': int(15e3),
+            'MAX_MINUTES': 60,
+            'MAX_EPISODES': 2000,
             'GOAL_MEAN_100_REWARD': 0.5
         }
 }
@@ -48,19 +46,19 @@ config = {
 def create_agent(config):
 
     policy_model_fn = lambda nS, bounds: utils.GaussianPolicyNet(nS, bounds, hidden_dims=config["POLICY_NET_Hidden_Dims"])
-    policy_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr, weight_decay=config["WEIGHT_DECAY"])
+    policy_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr)
 
     value_model_fn = lambda nS, nA: utils.QNet(nS, nA, hidden_dims=config["Q_NET_Hidden_Dims"])
-    value_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr, weight_decay=config["WEIGHT_DECAY"])
+    value_optimizer_fn = lambda net, lr: optim.Adam(net.parameters(), lr=lr)
 
     replay_buffer_fn = lambda: utils.ReplayBuffer(buffer_size=config["BUFFER_SIZE"], batch_size=config["BATCH_SIZE"])
 
-    return MASAC(replay_buffer_fn,
-                 policy_model_fn,
-                 policy_optimizer_fn,
-                 value_model_fn,
-                 value_optimizer_fn,
-                 config)
+    return SACAgent(replay_buffer_fn,
+                    policy_model_fn,
+                    policy_optimizer_fn,
+                    value_model_fn,
+                    value_optimizer_fn,
+                    config)
 
 
 def process_results(results, root_dir: str):
@@ -196,19 +194,24 @@ def train(env):
 
 if __name__ == "__main__":
 
-    np.set_printoptions(formatter={'float': lambda x: "{0:0.4f}".format(x)})
-
     # Parsing the arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--is_training', type=bool, default=True, help='Train otherwise Test/Eval')
     parser.add_argument('--load_dir', type=str, default=None, help='Directory to load the model from')
     args = parser.parse_args()
 
-    # wandb_id = wandb.util.generate_id()
     date_time_now = utils.get_date_time_now()
-    # wandb.init(project="MASAC_Tennis", id=wandb_id, config=config)
-    # wandb.run.name = date_time_now + "__" + wandb_id
-    # wandb.run.save()
+    mlflow.set_experiment("Multi_Agent_Tennis")
+    active_run_obj = mlflow.start_run()
+    exp_id = active_run_obj.info.run_id
+    mlflow.set_tag("agent", "MASAC")
+
+    config_sub_keys = ["ENV_SETTINGS"]
+    for key in config.keys():
+        if key not in config_sub_keys:
+            mlflow.log_param(key, config[key])
+        else:
+            mlflow.log_params(config[key])
 
     env_name, gamma, max_minutes, max_episodes, goal_mean_100_reward = config["ENV_SETTINGS"].values()
     env = UnityEnvironment(file_name=env_name, seed=config["SEED"][0])
@@ -218,7 +221,8 @@ if __name__ == "__main__":
 
     env_info = env.reset(train_mode=False)[brain_name]  # reset the environment
     # number of agents in the environment
-    print('Number of Agents:', len(env_info.agents))
+    num_agents = len(env_info.agents)
+    print('Number of Agents:', num_agents)
 
     # number of actions
     action_size = brain.vector_action_space_size
@@ -226,59 +230,51 @@ if __name__ == "__main__":
 
     # examine the state space
     state = env_info.vector_observations[0]
+    print('States look like:', state)
     state_size = len(state)
     print('State Size:', state_size)
-    print('States look like:', state, '\n')
-
-    # create and setup the agents
-    num_agents = config["NUM_AGENTS"]
-    agent = create_agent(config)
-    action_bounds = [-1 for _ in range(action_size)], [1 for _ in range(action_size)]
-    agent.setup(state_size, action_size, action_bounds)
-    # wandb.watch(agent, log='all')
 
     # watch an untrained agent
+    agent = create_agent(config)
     env_info = env.reset(train_mode=False)[brain_name]
-    states = env_info.vector_observations
-
-    # initialize the scores
-    agent_1_score = 0
-    agent_2_score = 0
-
+    action_bounds = [-1 for _ in range(action_size)], [1 for _ in range(action_size)]
+    agent.setup(state_size, action_size, action_bounds)
+    state = env_info.vector_observations
+    score = [0.0, 0.0]  # initialize the score
     for _ in range(50):
-        actions = np.concatenate([agent.policy_model.select_action(states[i]) for i in range(num_agents)])  # select an action
+        actions = np.array([agent.policy_model.select_action(state[i]) for i in range(num_agents)])
         env_info = env.step(actions)[brain_name]  # send the action to the environment
-        next_states = env_info.vector_observations  # get the next state
-        rewards = env_info.rewards  # get the reward
-        dones = env_info.local_done  # see if episode has finished
-        agent_1_score += rewards[0]  # update the score
-        agent_2_score += rewards[1]  # update the score
-        states = next_states  # roll over the state to next time step
-        if any(dones):  # exit loop if episode finished
+        next_state = env_info.vector_observations  # get the next state
+        reward = np.array(env_info.rewards)  # get the reward
+        done = np.array(env_info.local_done, dtype=np.float)  # see if episode has finished
+        score += reward  # update the score
+        state = next_state  # roll over the state to next time step
+        if np.any(done):  # exit loop if episode finished
             break
-    print(f"UnTrained Agents Score: agent_1: {agent_1_score},  agent_2: {agent_2_score}")
+    print("UnTrained Agent's Score: {}".format(score))
 
     if args.is_training:
-        agent = train(env)
-        args.load_dir = config["ROOT_DIR"]
+        with torch.autograd.set_detect_anomaly(True):
+            agent = train(env)
+            args.load_dir = config["ROOT_DIR"]
 
     # load the weights from the file
     assert args.load_dir is not None
     trained_policy = utils.load_checkpoint(model=agent.policy_model, path=args.load_dir)
 
     # watch the trained agent
-    score = 0  # initialize the score
+    score = np.zeros(num_agents)  # initialize the score
     env_info = env.reset(train_mode=False)[brain_name]
-    state = env_info.vector_observations[0]
+    stats = env_info.vector_observations
     while True:
-        action = trained_policy.select_action(state)  # select an action
-        env_info = env.step(action)[brain_name]  # send the action to the environment
-        next_state = env_info.vector_observations[0]  # get the next state
-        reward = env_info.rewards[0]  # get the reward
-        done = env_info.local_done[0]  # see if episode has finished
+        actions = np.array([trained_policy.select_action(stats[i]) for i in range(num_agents)])  # select an action
+        env_info = env.step(actions)[brain_name]  # send the action to the environment
+        next_states = env_info.vector_observations  # get the next state
+        reward = np.array(env_info.rewards)  # get the reward
+        done = np.array(env_info.local_done, dtype=np.float)  # see if episode has finished
         score += reward  # update the score
-        state = next_state  # roll over the state to next time step
-        if done:  # exit loop if episode finished
+        stats = next_states  # roll over the state to next time step
+        if np.any(done):  # exit loop if episode finished
             break
     print("Trained Agent's Score: {}".format(score))
 

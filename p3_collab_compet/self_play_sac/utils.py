@@ -42,11 +42,6 @@ class ReplayBuffer:
         self._idx = 0
         self.size = 0
 
-        device = "cpu"
-        if torch.cuda.is_available():
-            device = "cuda:0"
-        self.device = torch.device(device)
-
     def store(self, sample):
         state, action, reward, next_state, is_done = sample
         self.state_mem[self._idx] = state
@@ -67,22 +62,12 @@ class ReplayBuffer:
 
         idxs = np.random.choice(
             self.size, batch_size, replace=False)
-        experiences = np.stack(self.state_mem[idxs], axis=0), \
-                      np.stack(self.action_mem[idxs], axis=0), \
-                      np.stack(self.reward_mem[idxs], axis=0), \
-                      np.stack(self.next_state_mem[idxs], axis=0), \
-                      np.stack(self.is_done_mem[idxs], axis=0)
+        experiences = np.vstack(self.state_mem[idxs]), \
+                      np.vstack(self.action_mem[idxs]), \
+                      np.vstack(self.reward_mem[idxs]), \
+                      np.vstack(self.next_state_mem[idxs]), \
+                      np.vstack(self.is_done_mem[idxs])
         return experiences
-
-    def load(self, experiences):
-        states, actions, new_states, rewards, is_terminals = experiences
-
-        states = torch.from_numpy(states).float().to(self.device)
-        actions = torch.from_numpy(actions).float().to(self.device)
-        new_states = torch.from_numpy(new_states).float().to(self.device)
-        rewards = torch.from_numpy(rewards).float().to(self.device)
-        is_terminals = torch.from_numpy(is_terminals).float().to(self.device)
-        return states, actions, new_states, rewards, is_terminals
 
     def __len__(self):
         return self.size
@@ -95,7 +80,7 @@ class GaussianPolicyNet(nn.Module):
                  log_std_min=-20,
                  log_std_max=2,
                  hidden_dims=(32, 32),
-                 activation_fc=F.relu,
+                 activation_fc=torch.relu,
                  entropy_lr=0.001):
         super(GaussianPolicyNet, self).__init__()
         self.activation_fc = activation_fc
@@ -170,9 +155,8 @@ class GaussianPolicyNet(nn.Module):
         tanh_action = torch.tanh(pre_tanh_action)
         action = self.rescale_fn(tanh_action)
 
-        #log_prob = pi_s.log_prob(pre_tanh_action) - \
-        #           torch.log((1 - tanh_action.pow(2)).clamp(0, 1) + epsilon)
-        log_prob = pi_s.log_prob(pre_tanh_action)
+        log_prob = pi_s.log_prob(pre_tanh_action) - \
+                   torch.log((1 - tanh_action.pow(2)).clamp(0, 1) + epsilon)
         log_prob = log_prob.sum(dim=1, keepdim=True)
 
         return action, log_prob, self.rescale_fn(torch.tanh(mean))
