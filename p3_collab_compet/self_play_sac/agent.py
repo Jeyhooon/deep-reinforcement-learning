@@ -179,7 +179,7 @@ class SACAgent:
         self.episode_timestep = []
         self.episode_seconds = []
         self.episode_reward = np.zeros((1, self.num_agents))
-        self.evaluation_scores = np.zeros((1, self.num_agents))
+        self.evaluation_scores = []
 
         result = np.empty((max_episodes, 6))
         result[:] = np.nan
@@ -218,14 +218,14 @@ class SACAgent:
             self.save_checkpoint(episode - 1, self.policy_model)
 
             total_step = int(np.sum(self.episode_timestep))
-            self.evaluation_scores = np.concatenate([self.evaluation_scores, evaluation_score[None, ...]], axis=0)
+            self.evaluation_scores.append(evaluation_score)
 
             mean_10_reward = np.mean(np.max(self.episode_reward[-10:, :], axis=-1))
             std_10_reward = np.std(np.max(self.episode_reward[-10:, :], axis=-1))
             mean_100_reward = np.mean(np.max(self.episode_reward[-100:, :], axis=-1))
             std_100_reward = np.std(np.max(self.episode_reward[-100:, :], axis=-1))
-            mean_100_eval_score = np.mean(np.max(self.evaluation_scores[-100:, :], axis=-1))
-            std_100_eval_score = np.std(np.max(self.evaluation_scores[-100:, :], axis=-1))
+            mean_100_eval_score = np.mean(self.evaluation_scores[-100:])
+            std_100_eval_score = np.std(self.evaluation_scores[-100:])
 
             log_dict = {"mean_10_reward": mean_10_reward,
                         "std_10_reward": std_10_reward,
@@ -236,7 +236,7 @@ class SACAgent:
             mlflow.log_metrics(log_dict, episode)
 
             wallclock_elapsed = time.time() - training_start
-            result[episode - 1] = total_step, self.episode_reward[episode - 1, 0], mean_100_reward, \
+            result[episode - 1] = total_step, np.max(self.episode_reward[episode - 1]), mean_100_reward, \
                                   mean_100_eval_score, training_time, wallclock_elapsed
 
             reached_debug_time = time.time() - last_debug_time >= LEAVE_PRINT_EVERY_N_SECS
@@ -265,9 +265,8 @@ class SACAgent:
         final_eval_score, score_std = self.evaluate(self.policy_model, env, n_episodes=100)
         wallclock_time = time.time() - training_start
         print('Training complete.')
-        print('Final evaluation score {:.2f}\u00B1{:.2f} in {:.2f}s training time,'
-              ' {:.2f}s wall-clock time.\n'.format(
-            final_eval_score, score_std, training_time, wallclock_time))
+        print(f'Final evaluation score {final_eval_score}\u00B1{score_std} in {training_time}s training time,'
+              f' {wallclock_time}s wall-clock time.\n')
 
         self.save_checkpoint('final', self.policy_model)
         return result, final_eval_score, training_time, wallclock_time
@@ -284,7 +283,7 @@ class SACAgent:
                 s, r, d = env_info.vector_observations, np.array(env_info.rewards), np.array(env_info.local_done, dtype=np.float32)
                 rs[-1] += r
                 if np.any(d): break
-        return np.mean(rs, axis=0), np.std(rs, axis=0)
+        return np.mean(np.max(rs, axis=-1)), np.std(np.max(rs, axis=-1))
 
     def save_checkpoint(self, episode_idx, model):
         torch.save(model.state_dict(),

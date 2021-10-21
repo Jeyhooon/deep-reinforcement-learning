@@ -57,11 +57,6 @@ class SACAgent:
         self.policy_model.alpha_optimizer.step()
         alpha = self.policy_model.logalpha.exp()
 
-        current_q_sa_a = self.online_value_model_a(states, current_actions)
-        current_q_sa_b = self.online_value_model_b(states, current_actions)
-        current_q_sa = torch.min(current_q_sa_a, current_q_sa_b)
-        policy_loss = (alpha * logpi_s - current_q_sa).mean()
-
         # Q loss
         ap, logpi_sp, _ = self.policy_model.full_pass(next_states)
         q_spap_a = self.target_value_model_a(next_states, ap)
@@ -85,6 +80,11 @@ class SACAgent:
         torch.nn.utils.clip_grad_norm_(self.online_value_model_b.parameters(),
                                        self.value_max_grad_norm)
         self.value_optimizer_b.step()
+
+        current_q_sa_a = self.online_value_model_a(states, current_actions)
+        current_q_sa_b = self.online_value_model_b(states, current_actions)
+        current_q_sa = torch.min(current_q_sa_a, current_q_sa_b)
+        policy_loss = (alpha * logpi_s - current_q_sa).mean()
 
         self.policy_optimizer.zero_grad()
         policy_loss.backward()
