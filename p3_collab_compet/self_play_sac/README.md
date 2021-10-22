@@ -28,7 +28,7 @@ This yields a single score for each episode.
 The environment is considered solved, when the average (over 100 episodes) of those scores is at least +0.5.
 ### Getting Started
 
-Clone this repository and install the requirements in a [virtual-env](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) using `pip install requirements.txt`
+Clone this repository and install the requirements in a [virtual-env](https://docs.python.org/3/tutorial/venv.html#creating-virtual-environments) using `pip install -r requirements.txt`
 
 ### Instructions
 Download the environment from one of the links below.  You need only select the environment that matches your operating system:\
