@@ -32,6 +32,7 @@ Clone this repository and install the requirements in a [virtual-env](https://do
 
 ### Instructions
 Download the environment from one of the links below.  You need only select the environment that matches your operating system:\
+(create a `data` directory inside the `self_play_sac` folder and copy the unzipped folder to that directory: `self_play_sac/data/`)\
     - Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Linux.zip) \
     - Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis.app.zip) \
     - Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P3/Tennis/Tennis_Windows_x86.zip) \
