@@ -34,7 +34,7 @@ config = {
     "POLICY_MAX_GRAD_NORM": float('inf'),   # to clip gradients of the Policy-Net
 
     "ENV_SETTINGS": {
-            'ENV_NAME': '../data/Tennis_Linux/Tennis.x86_64',
+            'ENV_NAME': 'data/Tennis_Linux/Tennis.x86_64',
             'GAMMA': 0.99,
             'MAX_MINUTES': 60,
             'MAX_EPISODES': 2000,
