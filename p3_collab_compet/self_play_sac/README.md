@@ -1,5 +1,5 @@
 [//]: # (Image References)
-[image1]: https://user-images.githubusercontent.com/10624937/42135623-e770e354-7d12-11e8-998d-29fc74429ca2.gif "Trained Agent"
+[image1]: trained_sac_self_play_tennis_agent.gif "Trained Agent"
 
 # Tennis Self-paly with SAC (Continuous)
 
